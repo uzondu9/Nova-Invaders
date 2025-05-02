@@ -1,0 +1,296 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    
+}
+
+:root{
+    --green: #228B22;
+    --brown: #8B4513;
+    --purple:#6A0DAD;
+}
+
+h3, p, span, .bar{
+    font-family: cursive;
+}
+
+button{
+    font-family: monospace;
+}
+
+body{
+    height: 100vh;
+    background-image: url(sprites/game.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game {
+    display: grid;
+    grid-template-columns: 85vw 15vw;
+    grid-template-rows: 7.5vh 5vh auto auto auto auto auto auto auto; /* 2 top rows, rest flexible */
+    gap: 1em;
+
+    padding: 1em;
+    height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.screen {
+    display: none;
+}
+
+.robot-btn {
+    border: 2px solid transparent;
+    padding: 0.5em 1em;
+    margin: 0.5em;
+}
+.robot-btn.selected {
+    border-color: var(--purple);
+    box-shadow: 0 0 8px var(--purple);
+}
+  
+.box{
+    border-radius: 1em;
+}
+
+/* Top bar */
+#top_bar {
+    background-color: var(--brown);
+    grid-column: 1 / 2; /* Left column */
+    grid-row: 1 / 3; /* Spans row 1 and 2 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1em;
+}
+
+#top_bar #header{
+    background-color: #fff;
+    border: 1px solid #2222;
+    padding: 0.85em 1em;
+    border-radius: 1em;
+    width: 25%;
+    margin-right: auto;
+}
+
+#top_bar #header p{
+    font-weight: 800;
+    color: var(--brown);
+}
+
+#top_bar #header p span {
+    color: var(--green);
+}
+
+#top_bar .top_ui{
+    margin-right: 25%;
+    display: flex;
+    align-items: center;
+    gap: 2em;
+}
+
+#top_bar #pause{
+    width: fit-content;
+}
+
+#top_bar #pause img{
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+}
+
+#top_bar .tab{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 2px solid #000;
+    background-color: #fff;
+    border-radius: 1.25em;
+    padding-left: 0.5em;
+}
+
+.tab p{
+    width: min-content;
+    color: #000;
+}
+
+#top_bar .tab .bar{
+    background-color: #fff;
+    border-radius: 1em;
+    padding: 0.85em 2em;
+    border-left: 2px solid #000;
+}
+
+/* Bullet bar */
+#bullet_bar {
+    background-color: var(--brown);
+    grid-column: 2 / 3; /* Right column */
+    grid-row: 1 / 10; /* All rows */
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: fit-content;
+}
+
+#bullet_bar #header{
+    background-color: #fff;
+    padding: 1em 2em;
+    border-radius: 1em;
+    border-top-right-radius: 2em;
+}
+
+#bullet_bar #header h3{
+    font-size: large;
+    font-weight: 700;
+}
+
+#bullet_bar .bullets{
+    display: flex;
+    flex-direction: column;
+    gap: 2.5em;
+}
+
+#bullet_bar .bullets .bab{
+    background-color: var(--green);
+    padding: 1em;
+    border: 5px solid #fff;
+    border-radius: 1em;
+}
+
+#bullet_bar .bullets .bab span{
+    font-size: 12px;
+    color: white;
+}
+
+#bullet_bar .bullets .bab img{
+    width: 45px;
+    height: 45px;
+}
+
+/* Game area */
+.game_area {
+    grid-column: 1 / 2; /* Left column */
+    grid-row: 3 / 10; /* Rows 3 to 9 */
+    padding: 0;
+    border-radius: 1em;
+}
+
+#canvas{
+    border-radius: 1em;
+    background-image: url(sprites/background.jpg);
+}
+
+/* UI state transitions */
+.ui-screen{
+    border-radius: 1em;
+    width: fit-content;
+    height: fit-content;
+    border: 5px groove var(--brown);
+    background-color: var(--green);
+    padding: 2em 4em;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+}
+
+.ui-screen h2{
+    font-family: monospace;
+    font-size: xx-large;
+    color: #fff;
+}
+
+.ui-screen span{
+    color: #fff;
+}
+
+.ui-screen#ui-level-start{
+    color: var(--purple);
+}
+
+.ui-screen button{
+    padding: 1em 1.5em;
+    background-color: var(--purple);
+    border-radius: 0.5em;
+    color: white;
+    border: 2px groove white;
+    cursor: pointer;
+}
+
+/* stats */
+.ui-screen#screen-STATS{
+    display: flex;
+    align-items:center;
+}
+
+/* robot select */
+.ui-screen#screen-ROBOT_SELECT{
+    display: flex;
+    width: 80vw;
+}
+
+.ui-screen#screen-ROBOT_SELECT .buttons,
+#screen-PAUSED .buttons{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.ui-screen#screen-ROBOT_SELECT .buttons button{
+    background-color: var(--brown);
+    border: 1px solid var(--brown);
+    width: 20%;
+}
+
+.ui-screen#screen-ROBOT_SELECT .buttons img{
+    width: 75%;
+}
+
+/* pause and lose */
+#screen-PAUSED button, #screen-LOSE button{
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    width: fit-content;
+}
+
+#screen-PAUSED img, #screen-LOSE img{
+    width: 50%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.art{
+    display: none;
+}

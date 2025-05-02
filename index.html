@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Invaders</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="screen-STATS">
+        <h2>Game Stats</h2>
+        <p>Level: <span id="ui-level"></span></p>
+        <p>Games: <span id="ui-games"></span></p>
+        <p>Wins: <span id="ui-wins"></span></p>
+        <p>Losses: <span id="ui-loses"></span></p>
+        <p>Accuracy: <span id="ui-accuracy"></span>%</p>
+        <button id="btn-start">Start</button>
+      </div>
+      
+      <div id="screen-LEVEL_START">
+        <h2>Ready for Level <span id="ui-level-start"></span>?</h2>
+        <p>Enemies this round: <span id="ui-total-start"></span></p>
+        <p>Accuracy: <span id="ui-accuracy-start"></span>%</p>
+        <button id="btn-play">Next</button>
+      </div>
+      
+      <div id="screen-ROBOT_SELECT">
+        <h2>Choose Your Robot</h2>
+        <div class="buttons">
+            <button class="robot-btn" data-color="red" >
+                <img src="sprites/shooter-red.png" alt="">
+            </button>
+            <button class="robot-btn" data-color="blue" >
+                <img src="sprites/shooter-blue.png" alt="">
+            </button>
+            <button class="robot-btn" data-color="green">
+                <img src="sprites/shooter-green.png" alt="">
+            </button>
+            <button class="robot-btn" data-color="yellow">
+                <img src="sprites/shooter-yellow.png" alt="">
+            </button>
+        </div>
+        <button id="btn-choose-robot">Choose Robot</button>
+      </div>
+      
+      <div id = 'game' class="game">
+        <div id="top_bar" class="box">
+            <div id="header">
+                <p>Level <span></span></p>
+            </div>
+            <div class="top_ui">
+                <div id = "destroyedEnemies" class ="tab">
+                    <p>Destroyed Enemies:</p>
+                    <div class="bar"></div>
+                </div>
+                <div id="totalEnemies" class="tab">
+                    <p>Total Enemies:</p>
+                    <div class="bar"></div>
+                </div>
+                <div id='pause' class="pause">
+                    <img src="sprites/pause.png" >
+                </div>
+            </div>
+        </div>
+        <div id="bullet_bar" class="box">
+            <div id="header">
+                <h3>Bullets</h3>
+            </div>
+            <div class="bullets">
+                <div class="bab" id="b1">
+                    <img src="sprites/10.png">
+                </div>
+                <div class="bab" id="b2">
+                    <img src="sprites/14.png">
+                    <span class="bullet-info" id="b2-count"></span>
+                </div>
+                <div class="bab" id="b3">
+                    <img src="sprites/33.png">
+                    <span class="bullet-info" id="b3-count"></span>
+                </div>
+                <div class="bab" id="b4">
+                    <img src="sprites/61.png">
+                    <span class="bullet-info" id="b4-count"></span>
+                </div>
+            </div>
+        </div>
+        <div class="game_area" id="game_area">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
+      <div id="screen-PAUSED">
+        <h2>Paused</h2>
+        <div class="buttons">
+            <button id="btn-resume">
+                <img src="sprites/play.png" alt="">
+            </button>
+            <button id="btn-quit">
+                <img src="sprites/quit.png" alt="">
+            </button>
+        </div>
+      </div>
+      
+      <div id="screen-WIN">
+        <h2>You Win!</h2>
+        <p>You've unlocked Level <span id="ui-new-level"> </span></p>
+        <button id="btn-next-level">Next Level</button>
+      </div>
+      
+      <div id="screen-LOSE">
+        <h2>You Lose</h2>
+        <p>Destroyed: <span id="ui-destroyed-end"></span></p>
+        <p>Total: <span id="ui-total-end"></span></p>
+        <button id="btn-replay">
+            <img src="sprites/replay.png" alt="">
+        </button>
+      </div>
+      
+
+    <div class="art">
+        <img src="sprites/tower.png" id='tower'>
+        <img src="sprites/shooter-red.png" id="shooter-1">
+        <img src="sprites/shooter-blue.png" id="shooter-2">
+        <img src="sprites/shooter-green.png" id="shooter-3">
+        <img src="sprites/shooter-yellow.png" id="shooter-4">
+
+        <img src="sprites/10.png" id="b1">
+        <img src="sprites/14.png" id="b2">
+        <img src="sprites/33.png" id="b3">
+        <img src="sprites/61.png" id="b4">
+
+        <img src="sprites/e1.png" id="e1">
+        <img src="sprites/e2.png" id="e2">
+        <img src="sprites/e3.png" id="e3">
+        <img src="sprites/e4.png" id="e4">
+        <img src="sprites/e5.png" id="e5">
+
+        <img src="sprites/eExplo.png" id="eExplo">
+        <img src="sprites/e5Explo.png" id="e5Explo">
+        <img src="sprites/towerExplo.png" id="towerExplo">
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
