@@ -90,7 +90,7 @@ class UIManager {
   
       // win/lose screens
       document.getElementById('ui-new-level').textContent     = this.game.level;
-      document.getElementById('ui-destroyed-end').textContent  = this.game.enemiesDestroyed;
+      document.getElementById('ui-destroyed-end').textContent  = this.game.lastEnemiesDestroyed;
       document.getElementById('ui-total-end').textContent      = this.game.totalEnemies;
    
     // bullet dynamic values
@@ -157,12 +157,6 @@ class Tower {
         context.fillRect(12, 12, this.health, 10);
         context.strokeStyle = 'black';
         context.strokeRect(10, 10, 104, 14);
-
-        if (this.game.debug) {
-            context.beginPath();
-            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            context.stroke();
-        }
     }
 
     takeDamage(amount) {
@@ -214,10 +208,6 @@ class Robot {
         context.restore();
 
         const tip = this.getBarrelTipPosition();
-        context.beginPath();
-        context.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
-        context.fillStyle = 'red';
-        context.fill();
     }
 
     update() {
@@ -242,7 +232,6 @@ class Robot {
             const dy = this.aim[1];
             bullet.start(x, y, dx, dy);
             this.soundManager.playShootSound(this.bullet);
-            this.game.logBulletCount?.();
         }
     }
 }
@@ -252,6 +241,7 @@ class Bullet {
         this.game = game;
         this.robot = robot;
         this.free = true;
+        this.active = false; 
         this.type = type;
         this.setBulletAttributes(type);
     }
@@ -292,39 +282,39 @@ class Bullet {
         this.speedX = dx * 5;
         this.speedY = dy * 5;
         this.free = false;
+        this.active = true;      
     }
 
     update() {
-        if (!this.free) {
-            this.x += this.speedX;
-            this.y += this.speedY;
-            if (this.type === 'b1' && (this.x < 0 || this.x > this.game.width || this.y < 0 || this.y > this.game.height)) {
-                this.reset();
-            }
+        if (!this.active) return;  
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.type === 'b1' && (this.x < 0 || this.x > this.game.width || this.y < 0 || this.y > this.game.height)) {
+            this.reset();
         }
     }
 
     draw(context) {
-        if (!this.free) {
-            context.save();
-            const size = this.radius * 2;
-            context.translate(this.x, this.y);
-            const angle = Math.atan2(this.dy, this.dx);
-            context.rotate(angle);
-            if (this.image) {
-                context.drawImage(this.image, -this.radius, -this.radius, size, size);
-            } else {
-                context.fillStyle = this.color;
-                context.beginPath();
-                context.arc(0, 0, this.radius, 0, Math.PI * 2);
-                context.fill();
-            }
-            context.restore();
+        if (!this.active) return; 
+        context.save();
+        const size = this.radius * 2;
+        context.translate(this.x, this.y);
+        const angle = Math.atan2(this.dy, this.dx);
+        context.rotate(angle);
+        if (this.image) {
+            context.drawImage(this.image, -this.radius, -this.radius, size, size);
+        } else {
+            context.fillStyle = this.color;
+            context.beginPath();
+            context.arc(0, 0, this.radius, 0, Math.PI * 2);
+            context.fill();
         }
+        context.restore();
     }
 
     reset() {
         this.free = true;
+        this.active = false;
     }
 }
 
@@ -632,6 +622,7 @@ class Explosion {
             this.spriteWidth = 352 / 8;
             this.spriteHeight = 352;
             this.maxFrames = 32;
+            this.size = 900; 
         }
 
         this.frame = 0;
@@ -686,7 +677,7 @@ class SoundManager {
         // Game background music
         this.backgroundMusic2 = new Audio('sounds/m2.mp3');
         this.backgroundMusic2.loop = true;
-        this.backgroundMusic2.volume = 0.5; 
+        this.backgroundMusic2.volume = 0.3; 
 
         // Win
         this.win = new Audio('sounds/win.mp3');
@@ -787,7 +778,7 @@ class Game {
         this.robot = new Robot(this, this.soundManager);
 
         this.pools = { b1: [], b2: [], b3: [], b4: [] };
-        this.bulletCounts = { b1: 36, b2: 24, b3: 16, b4: 8 };
+        this.bulletCounts = { b1: 36, b2: 36, b3: 24, b4: 12};
 
         document.addEventListener('click', () => {
             this.soundManager.playBackgroundMusic();
@@ -796,6 +787,7 @@ class Game {
         // Stats
         this.level = 1;
         this.totalEnemies = 10; // Starting enemies for level 1
+        this.lastEnemiesDestroyed = 0;
         this.spawnedEnemies = 0;
         this.enemiesDestroyed = 0;
         this.games = 0;
@@ -891,7 +883,6 @@ class Game {
         document.getElementById('btn-replay')
             .addEventListener('click', () => {
                 this.reset(); 
-                this.resetBar();
                 ui.show('stats');
                 this.soundManager.playBackgroundMusic();
             });
@@ -937,6 +928,13 @@ class Game {
     }
 
     reset() {
+         // Store the current count before resetting
+         this.lastEnemiesDestroyed = this.enemiesDestroyed;
+        
+         // Reset stats & counters
+         this.spawnedEnemies   = 0;
+         this.enemiesDestroyed = 0;
+        
         // 1. Pause simulation
         this.paused = true;
     
@@ -975,12 +973,6 @@ class Game {
         ['b2','b3','b4'].forEach(t => this.setupRefill(t));
     }
 
-    resetBar(){
-         // 1. Reset stats & counters
-         this.spawnedEnemies   = 0;
-         this.enemiesDestroyed = 0;
-    }
-
     initBulletPools() {
         for (const type in this.pools) {
             const count = this.bulletCounts[type];
@@ -997,46 +989,52 @@ class Game {
 
     setupRefill(type) {
         const pool = this.pools[type];
-        const max = this.bulletCounts[type];
+        const max  = this.bulletCounts[type];
         if (!pool?.length) return;
     
-        const rate = pool[0].refillRate;
+        const rate = pool[0].refillRate;                     
     
-        // Clear existing interval if any
+        // Always clear any prior interval for this type
         if (this.refillIntervals?.[type]) {
-            clearInterval(this.refillIntervals[type]);
+            clearInterval(this.refillIntervals[type]);           
         }
-    
-        // Only set up refill if the bullet type is not currently selected
-        if (this.robot.bullet !== type) {
-            this.refillIntervals[type] = setInterval(() => {
-                const freeCount = pool.filter(b => b.free).length;
-                const inUse = pool.length - freeCount;
-    
-                if (inUse > 0 && freeCount < max) {
-                    const bullet = pool.find(b => !b.free);
-                    bullet.reset();
-                }
-            }, rate);
-        }
-    }
 
+        //Only schedule refill if this type is NOT currently selected
+        if (this.robot.bullet !== type) {
+        this.refillIntervals[type] = setInterval(() => {   
+            // count free vs. in-use bullets
+            const freeCount = pool.filter(b => b.free).length; 
+            const inUse     = pool.length - freeCount;
+    
+            // if any in-use and we haven’t reached max free, reset one
+            if (inUse > 0 && freeCount < max) {
+                const bullet = pool.find(b => !b.free);        
+                bullet.reset();
+            }
+        }, rate);
+      }
+    }
+    
     switchBullet(type) {
         if (this.robot.bullet === type) return;
+    
         const prev = this.robot.bullet;
         this.robot.bullet = type;
     
-        // restart refill for the bullet we just deselected
-        this.setupRefill(prev);                                     // MDN setInterval :contentReference[oaicite:14]{index=14}
+        // Clear refill for the newly selected type
+        this.setupRefill(type);                              
+    
+        // Restart refill for the previously selected type
+        this.setupRefill(prev);                              
     }
     
     clearRefillIntervals() {
         for (const type in this.refillIntervals) {
-            clearInterval(this.refillIntervals[type]);
+        clearInterval(this.refillIntervals[type]);          
         }
         this.refillIntervals = {};
     }
-
+    
     initEnemyPool() {
         for (let i = 0; i < this.totalEnemies; i++) {
             this.enemyPool.push(new Enemy(this, this.soundManager));
@@ -1172,7 +1170,6 @@ class Game {
     // Level and enemy logic
     levelUp() {
         this.level++;
-        this.enemiesDestroyed = 0;
         this.spawnedEnemies  = 0;
       
         // calculate new totalEnemies
@@ -1221,11 +1218,16 @@ class Game {
         // Bullet vs Enemy
         for (const type in this.pools) {
             this.pools[type].forEach(bullet => {
-                if (!bullet.free) {
+                if (bullet.active && !bullet.free) {
                     this.enemyPool.forEach(enemy => {
                         if (!enemy.free && this.checkCollision(bullet, enemy)) {
                             enemy.takeDamage(bullet.damage);
-                            bullet.reset();
+                            if (bullet.type === 'b1') {
+                                bullet.reset();
+                            }
+                            else{
+                                bullet.active = false; 
+                            }
 
                             const fx = this.hitEffects.find(e => !e.active);
                             if (fx) fx.trigger(enemy.x, enemy.y);
@@ -1241,6 +1243,7 @@ class Game {
                                         this.soundManager.stopBackgroundMusic2();
                                     
                                         this.soundManager.win.play();
+                                        this.reset();
                                         this.levelUp();
                                         this.recordResult(true);
                                     }
@@ -1274,8 +1277,9 @@ class Game {
                 this.enemiesDestroyed++;
                 enemy.reset();
 
-                setTimeout(() => {
-                    if (this.tower.health <= 0) {
+                if (this.tower.health <= 0) {
+                    this.explosions.push(new Explosion(this.tower.x, this.tower.y, 'tower'));
+                    setTimeout(() => {
                         this.recordResult(false);
                         this.ui.updateAll(); 
                         this.ui.show('lose');
@@ -1283,19 +1287,21 @@ class Game {
                         this.soundManager.stopBackgroundMusic2();
                         this.soundManager.lose.play();
                         this.reset();
-                        this.enemiesDestroyed = this.enemiesDestroyed;
-                    }
+                    }, 1000);
+
+                }
+                setTimeout(() => {
                     if(this.enemiesDestroyed >= this.totalEnemies){
                         this.ui.show('win');
                         this.soundManager.stopBackgroundMusic();
                         this.soundManager.stopBackgroundMusic2();
-
+    
                         this.soundManager.win.play();
+                        this.reset();
                         this.levelUp();
                         this.recordResult(true);
-                    }    
-                }, 500);
-               
+                    }        
+                }, 2000);   
             }
         });
 
@@ -1306,7 +1312,13 @@ class Game {
                 this.enemyBullets.forEach(enemyBullet => {
                     if (enemyBullet.free) return;
                     if (this.checkCollision(playerBullet, enemyBullet)) {
-                        playerBullet.reset();
+
+                        if (playerBullet.type === 'b1') {
+                           playerBullet.reset();
+                        }
+                        else{
+                            playerBullet.active = false; 
+                        }
                         enemyBullet.reset();
 
                         const fx = this.hitEffects.find(e => !e.active);
